@@ -728,13 +728,14 @@ async function runBattle() {
     getStat(rival, "special-attack") +
     getStat(rival, "speed");
   const playerWins = playerScore >= rivalScore;
+  const loserByKo = state.battle.playerHp === 0 ? "player" : state.battle.rivalHp === 0 ? "rival" : null;
   const winner = playerWins ? battleName(player) : battleName(rival);
-  const reason = state.battle.playerHp === 0 || state.battle.rivalHp === 0
+  const reason = loserByKo
     ? "por dejar al rival sin HP"
-    : "por desempate de HP restante, ataque y velocidad";
+    : "por decision de HP restante, ataque y velocidad";
 
   state.battleStatus = BATTLE_STATE.FINISHED;
-  state.battleLoser = playerWins ? "rival" : "player";
+  state.battleLoser = loserByKo;
   renderBattleState(`${winner} gana ${reason}.`);
 }
 
