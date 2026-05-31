@@ -87,6 +87,7 @@ const elements = {
   rivalHpText: document.querySelector("#rivalHpText"),
   vsBurst: document.querySelector("#vsBurst"),
   stageBattleBtn: document.querySelector("#stageBattleBtn"),
+  battleTurnCounter: document.querySelector("#battleTurnCounter"),
   versusPlayerName: document.querySelector("#versusPlayerName"),
   versusRivalName: document.querySelector("#versusRivalName"),
   fighterRoster: document.querySelector("#fighterRoster"),
@@ -522,6 +523,7 @@ function resetBattleHealth() {
   };
   state.battleStatus = BATTLE_STATE.READY;
   state.battleLoser = null;
+  updateTurnCounter("Turno 0");
   renderBattleState();
 }
 
@@ -530,9 +532,13 @@ function clearBattleResult() {
   elements.rivalSpotlight.classList.remove("is-defeated");
 }
 
-function applyBattleResult(loserSide) {
+function applyBattleResult(loserSide, isKo = true) {
   clearBattleResult();
   const loser = loserSide === "player" ? elements.playerSpotlight : elements.rivalSpotlight;
+  const label = loser.querySelector(".defeated-label");
+  if (label) {
+    label.textContent = isKo ? "Derrotado" : "Por decisión";
+  }
   loser.classList.add("is-defeated");
 }
 
@@ -566,7 +572,7 @@ function renderBattleState(summary = "") {
   elements.stageBattleBtn.disabled = isRunning;
 
   if (state.battleLoser) {
-    applyBattleResult(state.battleLoser);
+    applyBattleResult(state.battleLoser.side, state.battleLoser.isKo);
   } else {
     clearBattleResult();
   }
@@ -585,6 +591,10 @@ function restartBattleView() {
   resetBattleHealth();
   elements.turnLog.innerHTML = "";
   renderBattleState(UI_TEXT.newBattleReady);
+}
+
+function updateTurnCounter(text) {
+  elements.battleTurnCounter.textContent = text;
 }
 
 function renderHealth() {
@@ -650,7 +660,9 @@ function renderBattleLog(entries) {
       (entry) => `
         <div class="turn-row">
           <strong>${entry.title}</strong>
-          <span>${entry.detail}</span>
+          <div class="turn-attacks">
+            ${entry.attacks.map((attack) => `<span>${attack}</span>`).join("")}
+          </div>
         </div>
       `,
     )
@@ -680,6 +692,8 @@ async function runBattle() {
   const playerFirst = getStat(player, "speed") >= getStat(rival, "speed");
   const order = playerFirst ? [player, rival] : [rival, player];
   const entries = [];
+  let completedTurns = 0;
+  let lastTurnAttacks = 0;
 
   state.battleStatus = BATTLE_STATE.RUNNING;
   renderBattleState(`${battleName(order[0])} ataca primero por velocidad. Calculando efectividad con PokeAPI...`);
@@ -687,6 +701,12 @@ async function runBattle() {
 
   try {
     for (let round = 1; round <= 12 && state.battle.playerHp > 0 && state.battle.rivalHp > 0; round += 1) {
+      const turnEntry = {
+        title: `Turno ${round}`,
+        attacks: [],
+      };
+      entries.push(turnEntry);
+
       for (const attacker of order) {
         const defender = attacker === player ? rival : player;
         const attackerSide = attacker === player ? "player" : "rival";
@@ -694,6 +714,7 @@ async function runBattle() {
         if (state.battle.playerHp <= 0 || state.battle.rivalHp <= 0) break;
 
         const attack = await buildAttack(attacker, defender, round);
+        updateTurnCounter(`Turno ${round}`);
         playHitAnimation(attackerSide, defenderSide);
         if (attacker === player) {
           state.battle.rivalHp = Math.max(0, state.battle.rivalHp - attack.damage);
@@ -702,13 +723,19 @@ async function runBattle() {
         }
 
         renderBattleState();
-        entries.unshift({
-          title: `Turno ${round}: ${attack.attacker}`,
-          detail: `Ataque tipo ${attack.attackType}: ${attack.text} contra ${attack.defender}. Danio ${attack.damage}.`,
-        });
+        const defenderHp = attacker === player ? state.battle.rivalHp : state.battle.playerHp;
+        const defenderMax = attacker === player ? state.battle.rivalMax : state.battle.playerMax;
+        turnEntry.attacks.push(
+          `${attack.attacker} golpea a ${attack.defender}: ${attack.damage} danio (${attack.text}). HP ${defenderHp}/${defenderMax}.`,
+        );
+        lastTurnAttacks = turnEntry.attacks.length;
         renderBattleLog(entries);
         await new Promise((resolve) => setTimeout(resolve, 460));
       }
+
+      completedTurns += turnEntry.attacks.length === 2 ? 1 : 0;
+      lastTurnAttacks = turnEntry.attacks.length;
+      if (turnEntry.attacks.length === 0) entries.pop();
     }
   } catch (error) {
     state.battleStatus = BATTLE_STATE.READY;
@@ -733,10 +760,16 @@ async function runBattle() {
   const reason = loserByKo
     ? "por dejar al rival sin HP"
     : "por decision de HP restante, ataque y velocidad";
+  const totalTurns = entries.length;
+  const turnText = totalTurns === 1 ? "1 turno" : `${totalTurns} turnos`;
 
   state.battleStatus = BATTLE_STATE.FINISHED;
-  state.battleLoser = loserByKo;
-  renderBattleState(`${winner} gana ${reason}.`);
+  state.battleLoser = {
+    side: playerWins ? "rival" : "player",
+    isKo: loserByKo !== null,
+  };
+  updateTurnCounter(`Turno ${totalTurns}`);
+  renderBattleState(`${winner} gana ${reason}. Se jugaron ${turnText}.`);
 }
 
 async function loadType(typeName) {

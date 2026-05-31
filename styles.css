@@ -308,7 +308,7 @@ h2 {
   font-weight: 900;
 }
 
-.search-bar button,
+.search-bar > button,
 .quick-actions button,
 .type-filter button {
   min-height: 44px;
@@ -324,7 +324,7 @@ h2 {
   background: var(--red);
 }
 
-.search-bar button:hover,
+.search-bar > button:hover,
 .quick-actions button:hover,
 .type-filter button:hover,
 .pokemon-card:hover {
@@ -482,7 +482,7 @@ h2 {
 .center-battle-btn {
   position: absolute;
   left: 50%;
-  top: 12%;
+  top: 24%;
   z-index: 4;
   min-height: 46px;
   padding: 0 22px;
@@ -499,6 +499,24 @@ h2 {
 .center-battle-btn:hover {
   background: var(--red);
   transform: translateX(-50%) translateY(-2px);
+}
+
+.battle-turn-counter {
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  z-index: 4;
+  max-width: min(76%, 360px);
+  padding: 8px 12px;
+  border: 2px solid rgba(21, 32, 51, 0.9);
+  border-radius: 8px;
+  color: var(--ink);
+  background: rgba(255, 250, 240, 0.94);
+  box-shadow: 4px 4px 0 rgba(21, 32, 51, 0.12);
+  font-size: 0.82rem;
+  font-weight: 1000;
+  text-align: center;
+  transform: translateX(-50%);
 }
 
 .pokemon-spotlight {
@@ -784,7 +802,7 @@ h2 {
   box-shadow: 0 0 0 4px rgba(227, 54, 63, 0.14);
 }
 
-.rival-form button {
+.rival-form > button {
   min-height: 46px;
   padding: 0 14px;
   border-radius: 8px;
@@ -793,7 +811,7 @@ h2 {
   font-weight: 900;
 }
 
-.rival-form button:last-child {
+.rival-form > button:last-child {
   background: var(--ink);
 }
 
@@ -1029,7 +1047,7 @@ h2 {
 }
 
 .turn-row strong,
-.turn-row span {
+.turn-attacks span {
   display: block;
 }
 
@@ -1038,7 +1056,12 @@ h2 {
   text-transform: capitalize;
 }
 
-.turn-row span {
+.turn-attacks {
+  display: grid;
+  gap: 6px;
+}
+
+.turn-attacks span {
   color: var(--muted);
   font-size: 0.88rem;
   font-weight: 750;
@@ -1589,7 +1612,7 @@ h2 {
   }
 
   .center-battle-btn {
-    top: 36%;
+    top: 24%;
     min-height: 38px;
     padding: 0 14px;
     font-size: 0.82rem;
