@@ -552,6 +552,71 @@ h2 {
   opacity: 0.48;
 }
 
+.pokemon-spotlight.is-attacking img {
+  animation: lunge-hit 280ms ease;
+}
+
+.pokemon-spotlight.is-hit img {
+  animation: receive-hit 360ms ease;
+}
+
+.defeated-label {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  z-index: 3;
+  display: none;
+  padding: 8px 14px;
+  border: 3px solid rgba(141, 24, 36, 0.92);
+  border-radius: 8px;
+  color: #ffffff;
+  background: rgba(227, 54, 63, 0.95);
+  box-shadow: 4px 4px 0 rgba(21, 32, 51, 0.2);
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  font-weight: 1000;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  transform: translate(-50%, -50%) rotate(-7deg);
+}
+
+.pokemon-spotlight.is-defeated .defeated-label {
+  display: block;
+  animation: defeat-stamp 260ms ease both;
+}
+
+.hit-effect {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 2;
+  width: 78px;
+  aspect-ratio: 1;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.4);
+}
+
+.pokemon-spotlight.is-hit .hit-effect {
+  animation: hit-flash 360ms ease;
+}
+
+.hit-effect::before,
+.hit-effect::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(50% 0, 60% 34%, 100% 28%, 68% 52%, 92% 86%, 56% 68%, 42% 100%, 38% 62%, 0 72%, 30% 48%, 8% 14%, 42% 32%);
+}
+
+.hit-effect::before {
+  background: #ffe66d;
+}
+
+.hit-effect::after {
+  inset: 12px;
+  background: #e3363f;
+}
+
 .rival-spotlight img {
   max-width: 88%;
 }
@@ -891,6 +956,60 @@ h2 {
   100% {
     opacity: 0;
     transform: scale(1.35) rotate(-4deg);
+  }
+}
+
+@keyframes lunge-hit {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  42% {
+    transform: translateY(-8px) scale(1.06);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes receive-hit {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  20% {
+    transform: translate(-10px, -3px) rotate(-3deg);
+  }
+  42% {
+    transform: translate(10px, 2px) rotate(3deg);
+  }
+  66% {
+    transform: translate(-5px, 0) rotate(-1deg);
+  }
+}
+
+@keyframes hit-flash {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.25) rotate(-14deg);
+  }
+  28% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1) rotate(8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.55) rotate(18deg);
+  }
+}
+
+@keyframes defeat-stamp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.35) rotate(-7deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1) rotate(-7deg);
   }
 }
 

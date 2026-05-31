@@ -56,6 +56,10 @@ const elements = {
   rivalArtwork: document.querySelector("#rivalArtwork"),
   playerSpotlight: document.querySelector(".player-spotlight"),
   rivalSpotlight: document.querySelector(".rival-spotlight"),
+  spotlightBySide: {
+    player: document.querySelector(".player-spotlight"),
+    rival: document.querySelector(".rival-spotlight"),
+  },
   playerHeightTag: document.querySelector("#playerHeightTag"),
   rivalHeightTag: document.querySelector("#rivalHeightTag"),
   emptyState: document.querySelector("#emptyState"),
@@ -532,6 +536,25 @@ function applyBattleResult(loserSide) {
   loser.classList.add("is-defeated");
 }
 
+function clearHitAnimations() {
+  Object.values(elements.spotlightBySide).forEach((spotlight) => {
+    spotlight.classList.remove("is-attacking", "is-hit");
+  });
+}
+
+function playHitAnimation(attackerSide, defenderSide) {
+  const attacker = elements.spotlightBySide[attackerSide];
+  const defender = elements.spotlightBySide[defenderSide];
+  clearHitAnimations();
+  void attacker.offsetWidth;
+  attacker.classList.add("is-attacking");
+  defender.classList.add("is-hit");
+  window.setTimeout(() => {
+    attacker.classList.remove("is-attacking");
+    defender.classList.remove("is-hit");
+  }, 380);
+}
+
 function renderBattleState(summary = "") {
   const isRunning = state.battleStatus === BATTLE_STATE.RUNNING;
   const isFinished = state.battleStatus === BATTLE_STATE.FINISHED;
@@ -546,6 +569,9 @@ function renderBattleState(summary = "") {
     applyBattleResult(state.battleLoser);
   } else {
     clearBattleResult();
+  }
+  if (!isRunning) {
+    clearHitAnimations();
   }
 
   renderHealth();
@@ -662,23 +688,26 @@ async function runBattle() {
   try {
     for (let round = 1; round <= 12 && state.battle.playerHp > 0 && state.battle.rivalHp > 0; round += 1) {
       for (const attacker of order) {
-      const defender = attacker === player ? rival : player;
-      if (state.battle.playerHp <= 0 || state.battle.rivalHp <= 0) break;
+        const defender = attacker === player ? rival : player;
+        const attackerSide = attacker === player ? "player" : "rival";
+        const defenderSide = attackerSide === "player" ? "rival" : "player";
+        if (state.battle.playerHp <= 0 || state.battle.rivalHp <= 0) break;
 
-      const attack = await buildAttack(attacker, defender, round);
-      if (attacker === player) {
-        state.battle.rivalHp = Math.max(0, state.battle.rivalHp - attack.damage);
-      } else {
-        state.battle.playerHp = Math.max(0, state.battle.playerHp - attack.damage);
-      }
+        const attack = await buildAttack(attacker, defender, round);
+        playHitAnimation(attackerSide, defenderSide);
+        if (attacker === player) {
+          state.battle.rivalHp = Math.max(0, state.battle.rivalHp - attack.damage);
+        } else {
+          state.battle.playerHp = Math.max(0, state.battle.playerHp - attack.damage);
+        }
 
-      renderBattleState();
-      entries.unshift({
-        title: `Turno ${round}: ${attack.attacker}`,
-        detail: `Ataque tipo ${attack.attackType}: ${attack.text} contra ${attack.defender}. Daño ${attack.damage}.`,
-      });
-      renderBattleLog(entries);
-      await new Promise((resolve) => setTimeout(resolve, 420));
+        renderBattleState();
+        entries.unshift({
+          title: `Turno ${round}: ${attack.attacker}`,
+          detail: `Ataque tipo ${attack.attackType}: ${attack.text} contra ${attack.defender}. Danio ${attack.damage}.`,
+        });
+        renderBattleLog(entries);
+        await new Promise((resolve) => setTimeout(resolve, 460));
       }
     }
   } catch (error) {
