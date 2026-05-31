@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pokedex API Lab</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='29' fill='%23fff' stroke='%23152033' stroke-width='6'/%3E%3Cpath d='M4 32a28 28 0 0 1 56 0H4z' fill='%23ef3f42'/%3E%3Cpath d='M4 32h56' stroke='%23152033' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='11' fill='%23fff' stroke='%23152033' stroke-width='6'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://pokeapi.co" />
+    <link rel="preconnect" href="https://raw.githubusercontent.com" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="control-deck" aria-label="Buscador Pokedex">
+        <div class="brand-block">
+          <span class="pokeball" aria-hidden="true"></span>
+          <div>
+            <p class="eyebrow">PokeAPI live console</p>
+            <h1>Pokedex interactiva</h1>
+          </div>
+        </div>
+
+        <form class="search-bar" id="searchForm">
+          <label class="sr-only" for="pokemonInput">Nombre o ID del Pokemon</label>
+          <div class="suggest-field">
+            <input
+              id="pokemonInput"
+              name="pokemon"
+              type="search"
+              placeholder="pikachu, charizard, 25..."
+              autocomplete="off"
+              aria-autocomplete="list"
+              aria-expanded="false"
+            />
+            <div class="suggestions" id="pokemonSuggestions" role="listbox"></div>
+          </div>
+          <button type="submit">Buscar</button>
+          <button class="icon-button" id="randomBtn" type="button" title="Pokemon aleatorio" aria-label="Pokemon aleatorio">
+            ?
+          </button>
+        </form>
+
+        <div class="quick-actions" aria-label="Accesos rapidos">
+          <button type="button" data-pokemon="pikachu">Pikachu</button>
+          <button type="button" data-pokemon="bulbasaur">Bulbasaur</button>
+          <button type="button" data-pokemon="squirtle">Squirtle</button>
+          <button type="button" data-pokemon="charmander">Charmander</button>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <div class="stage-column">
+          <section class="battle-stage" aria-live="polite">
+            <div class="arena-sky">
+              <div class="score-chip">
+                <span id="selectedName">Esperando entrenador</span>
+                <strong id="selectedId">#---</strong>
+              </div>
+              <div class="rival-chip">
+                <span id="rivalName">Rival pendiente</span>
+                <strong id="rivalId">#---</strong>
+              </div>
+              <div class="hud-rail">
+                <div class="battle-hud player-hud">
+                  <span id="playerHudName">Tu Pokemon</span>
+                  <div class="hp-track"><span id="playerHpBar"></span></div>
+                  <strong id="playerHpText">-- / --</strong>
+                </div>
+                <div class="battle-hud rival-hud">
+                  <span id="rivalHudName">Rival</span>
+                  <div class="hp-track"><span id="rivalHpBar"></span></div>
+                  <strong id="rivalHpText">-- / --</strong>
+                </div>
+              </div>
+            </div>
+            <div class="arena-field">
+              <div class="vs-burst" id="vsBurst" aria-hidden="true">VS</div>
+              <button type="button" class="center-battle-btn" id="stageBattleBtn">Batallar</button>
+              <div class="pokemon-spotlight player-spotlight">
+                <img id="pokemonArtwork" alt="" src="" />
+                <span class="height-tag" id="playerHeightTag">-- m</span>
+                <div class="empty-state" id="emptyState">
+                  <span class="pokeball large" aria-hidden="true"></span>
+                  <p>Busca un Pokemon para ver su ficha y las llamadas reales a la API.</p>
+                </div>
+              </div>
+              <div class="pokemon-spotlight rival-spotlight">
+                <img id="rivalArtwork" alt="" src="" />
+                <span class="height-tag" id="rivalHeightTag">-- m</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="api-console" aria-label="Registro de llamadas a la API">
+            <div class="console-header">
+              <div>
+                <p class="eyebrow">flujo de aprendizaje</p>
+                <div class="title-with-help">
+                  <h2>Actividad de PokeAPI</h2>
+                  <button class="help-button" type="button" data-help="Actividad de PokeAPI" data-help-body="Este registro muestra cada GET real que hace la pagina, su ruta, codigo de respuesta y latencia. Sirve para entender que datos se consultan en vivo y cuando se reutiliza cache local.">?</button>
+                </div>
+              </div>
+              <div class="console-metrics">
+                <span><strong id="callCount">0</strong> llamadas</span>
+                <span><strong id="avgLatency">0ms</strong> promedio</span>
+              </div>
+            </div>
+            <div class="call-log" id="callLog" role="log" aria-live="polite"></div>
+          </section>
+
+          <section class="matchup-panel" aria-label="Estadisticas del enfrentamiento">
+            <div class="section-title">
+              <div>
+                <p class="eyebrow">lectura del duelo</p>
+                <div class="title-with-help">
+                  <h2>Stats frente a frente</h2>
+                  <button class="help-button" type="button" data-help="Stats frente a frente" data-help-body="Compara los dos registros de /pokemon/{id}: HP, Attack, Defense, Sp. Attack, Sp. Defense, Speed, tipos, altura, peso y total de stats para leer el duelo antes de batallar.">?</button>
+                </div>
+              </div>
+            </div>
+            <div class="matchup-grid" id="matchupGrid"></div>
+          </section>
+        </div>
+
+        <aside class="stat-panel" aria-label="Ficha del Pokemon">
+          <div class="panel-header">
+            <div class="title-with-help">
+              <h2>Ficha tecnica</h2>
+              <button class="help-button" type="button" data-help="Ficha tecnica" data-help-body="La ficha combina /pokemon/{id} para altura, peso, experiencia, stats, tipos y habilidades; /pokemon-species/{id} para habitat, generacion, color, forma, captura y descripcion; /pokemon/{id}/encounters para localizaciones; y evolution-chain para la linea evolutiva.">?</button>
+            </div>
+            <span id="statusPill" class="status-pill">sin datos</span>
+          </div>
+          <div class="type-row" id="typeRow"></div>
+          <dl class="metric-grid">
+            <div>
+              <dt>Altura</dt>
+              <dd id="heightMetric">--</dd>
+            </div>
+            <div>
+              <dt>Peso</dt>
+              <dd id="weightMetric">--</dd>
+            </div>
+            <div>
+              <dt>Experiencia</dt>
+              <dd id="xpMetric">--</dd>
+            </div>
+          </dl>
+          <div class="stats-list" id="statsList"></div>
+          <div class="ability-strip" id="abilityStrip"></div>
+          <div class="profile-grid" id="profileGrid"></div>
+          <div class="lore-panel" id="speciesSummary"></div>
+          <div class="data-panel">
+            <h3>Localizaciones</h3>
+            <div class="location-list" id="locationList"></div>
+          </div>
+          <div class="data-panel">
+            <h3>Evolucion</h3>
+            <div class="evolution-line" id="evolutionLine"></div>
+          </div>
+          <div class="data-panel">
+            <h3>Movimientos destacados</h3>
+            <div class="move-list" id="moveList"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="battle-console" aria-label="Simulador de batalla">
+        <div class="battle-controls">
+          <div>
+            <p class="eyebrow">seleccion de combate</p>
+            <div class="title-with-help">
+              <h2>Elige rival como en un juego de pelea</h2>
+              <button class="help-button" type="button" data-help="Seleccion de combate" data-help-body="La grilla carga una lista curada de rivales desde /pokemon/{name}. Al elegir uno se actualiza el rival, se grisacean los demas y se dispara la animacion VS.">?</button>
+            </div>
+          </div>
+          <form class="rival-form" id="rivalForm">
+            <label class="sr-only" for="rivalInput">Rival</label>
+            <div class="suggest-field">
+              <input
+                id="rivalInput"
+                type="search"
+                placeholder="rival: mewtwo, greninja..."
+                autocomplete="off"
+                aria-autocomplete="list"
+                aria-expanded="false"
+              />
+              <div class="suggestions" id="rivalSuggestions" role="listbox"></div>
+            </div>
+            <button type="submit">Preparar rival</button>
+            <button type="button" id="battleBtn">Batallar</button>
+          </form>
+        </div>
+        <div class="versus-panel">
+          <div class="versus-card">
+            <span>Jugador</span>
+            <strong id="versusPlayerName">Pikachu</strong>
+          </div>
+          <div class="versus-mark">VS</div>
+          <div class="versus-card rival">
+            <span>Rival</span>
+            <strong id="versusRivalName">Charizard</strong>
+          </div>
+        </div>
+        <div class="fighter-roster" id="fighterRoster" aria-label="Menu de seleccion de rival"></div>
+        <div class="battle-summary" id="battleSummary">
+          Selecciona un Pokemon y prepara un rival. Cada batalla consulta tipos reales en PokeAPI para medir ventaja.
+        </div>
+        <div class="turn-log" id="turnLog" role="log" aria-live="polite"></div>
+      </section>
+
+      <section class="explore-band" aria-label="Explorar por tipo">
+        <div class="section-title">
+          <div class="title-with-help">
+            <h2>Explorar por tipo</h2>
+            <button class="help-button" type="button" data-help="Explorar por tipo" data-help-body="Los botones consultan /type/{type}. De ahi se toma una muestra de Pokemon relacionados con ese tipo y se muestran sus sprites publicos.">?</button>
+          </div>
+          <p>Elige un tipo y carga una muestra.</p>
+        </div>
+        <div class="type-filter" id="typeFilter"></div>
+        <div class="pokemon-grid" id="pokemonGrid"></div>
+      </section>
+
+      <footer class="site-footer">
+        <span>Repositorio</span>
+        <a href="https://github.com/DevCop95/aprendeapi" target="_blank" rel="noreferrer">DevCop95/aprendeapi</a>
+      </footer>
+
+      <dialog class="help-dialog" id="helpDialog">
+        <div class="help-dialog-header">
+          <h2 id="helpTitle">Ayuda</h2>
+          <button class="help-close" type="button" id="helpClose" aria-label="Cerrar ayuda">x</button>
+        </div>
+        <p id="helpBody"></p>
+      </dialog>
+
+      <dialog class="intro-dialog" id="introDialog">
+        <div class="intro-content">
+          <span class="pokeball large" aria-hidden="true"></span>
+          <div>
+            <p class="eyebrow">aprende consumiendo una api real</p>
+            <h2>Todo viene de PokeAPI</h2>
+            <p>
+              Esta experiencia muestra datos reales de Pokemon y tambien ensena que llamadas se hacen.
+              Cada seccion tiene un boton <strong>?</strong> que explica que endpoint alimenta esa parte.
+            </p>
+          </div>
+          <button class="intro-close" type="button" id="introClose">Entendido</button>
+        </div>
+      </dialog>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
