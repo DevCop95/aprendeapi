@@ -1,80 +1,107 @@
-# Pokedex interactiva con PokeAPI
+# Pokedex API Lab
 
-Una experiencia visual para aprender como se consume una API real usando datos de Pokemon en vivo. La app mezcla una Pokedex, un monitor de llamadas HTTP y un selector de combate estilo juego de pelea para que sea facil ver que se consulta, por que se consulta y como esos datos cambian la interfaz.
+![HTML](https://img.shields.io/badge/HTML-5-E34F26?logo=html5&logoColor=white)
+![CSS](https://img.shields.io/badge/CSS-3-1572B6?logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?logo=javascript&logoColor=222)
+![API](https://img.shields.io/badge/API-PokeAPI-ef5350)
+![Status](https://img.shields.io/badge/status-live-2ea44f)
+![License](https://img.shields.io/badge/uso-educativo-blue)
 
-## Demo
+Una Pokedex interactiva para aprender consumo de APIs con datos reales de Pokemon. La experiencia combina busqueda, autocompletado, consola de llamadas HTTP, exploracion por tipo y una batalla visual donde cada decision sale de respuestas JSON de [PokeAPI](https://pokeapi.co/).
 
-GitHub Pages:
+## Links
 
-[https://devcop95.github.io/aprendeapi/](https://devcop95.github.io/aprendeapi/)
+- Demo: [https://devcop95.github.io/aprendeapi/](https://devcop95.github.io/aprendeapi/)
+- Repositorio: [DevCop95/aprendeapi](https://github.com/DevCop95/aprendeapi)
+- API oficial: [PokeAPI v2 Docs](https://pokeapi.co/docs/v2)
 
-Repositorio:
+## De donde sale la API
 
-[DevCop95/aprendeapi](https://github.com/DevCop95/aprendeapi)
+La informacion viene de **PokeAPI**, una API publica de solo lectura para datos de Pokemon. Segun su documentacion oficial, PokeAPI no requiere autenticacion para consultar recursos y expone datos mediante peticiones HTTP `GET`. Tambien recomienda cachear localmente los recursos consultados, por eso esta app marca las lecturas repetidas como `cache` en la consola.
 
-## Que hace
+Base URL usada por la app:
 
-- Busca Pokemon por nombre o ID.
-- Recomienda Pokemon mientras escribes para no depender del nombre exacto.
-- Muestra una arena con dos Pokemon enfrentados.
-- Escala los Pokemon segun su altura real.
-- Permite elegir rival desde una grilla tipo juego de pelea.
-- Reproduce una animacion `VS` al cambiar el enfrentamiento.
-- Simula batallas usando stats y ventaja de tipos.
-- Muestra siempre un ganador, por KO o por desempate de stats.
-- Ensena las llamadas a PokeAPI con ruta, estado, latencia y lecturas servidas desde cache local.
-- Marca visualmente al Pokemon derrotado y permite reiniciar el combate desde el mismo boton.
-- Muestra ficha tecnica, habitat, generacion, localizaciones, evolucion y movimientos.
-- Incluye botones de ayuda para explicar de donde sale cada seccion.
+```txt
+https://pokeapi.co/api/v2
+```
 
-## Datos usados de PokeAPI
+## Features
 
-La app usa varios endpoints de [PokeAPI v2](https://pokeapi.co/docs/v2):
+| Area | Que hace |
+| --- | --- |
+| Busqueda | Busca Pokemon por nombre o ID y muestra sugerencias mientras escribes. |
+| Pokedex | Renderiza tipos, altura, peso, experiencia, stats, habilidades y movimientos. |
+| Contexto | Consulta especie, habitat, generacion, localizaciones y linea evolutiva. |
+| Arena | Enfrenta tu Pokemon contra un rival con sprites y escala visual por altura real. |
+| Batalla | Simula turnos usando HP, ataque, defensa, velocidad y ventaja de tipos. |
+| Resultado | El perdedor pierde color, el boton cambia a `Reiniciar` y el combate se puede limpiar. |
+| Explorador | Filtra muestras de Pokemon por tipo usando `/type/{type}`. |
+| Consola API | Muestra ruta, estado, latencia y respuestas servidas desde cache local. |
+| Ayuda | Incluye botones `?` para explicar de que endpoint sale cada seccion. |
 
-- `/pokemon/{id or name}`: sprites, tipos, altura, peso, experiencia, stats, habilidades y movimientos.
-- `/pokemon?limit=1025`: indice para sugerencias del buscador.
-- `/pokemon-species/{id}`: habitat, generacion, color, forma, tasa de captura y descripcion.
-- `/pokemon/{id}/encounters`: localizaciones donde aparece el Pokemon.
-- `/evolution-chain/{id}`: linea evolutiva.
-- `/type/{type}`: Pokemon por tipo y relaciones de efectividad.
+## Interaccion principal
 
-## Arquitectura de la interfaz
+1. Escribe un nombre o ID, por ejemplo `pikachu` o `25`.
+2. La app consulta `/pokemon/{id or name}` y pinta la ficha principal.
+3. En paralelo consulta especie, localizaciones y evolucion para completar el contexto.
+4. Elige un rival desde la grilla o escribe otro Pokemon.
+5. Pulsa `Batallar`.
+6. La batalla consulta relaciones de tipos desde `/type/{type}` para calcular efectividad.
+7. Al terminar, el perdedor queda en gris y el boton pasa a `Reiniciar`.
 
-- `pokeApi`: concentra endpoints, llamadas `fetch`, cache local y registro del monitor HTTP.
-- `BATTLE_STATE`: modela el combate como `idle`, `ready`, `running` o `finished` para evitar estados ambiguos.
-- `renderBattleState()`: sincroniza boton, HP, ganador/perdedor y bloqueo durante la simulacion.
-- `UI_TEXT`: agrupa textos reutilizados para mantener consistencia en botones y mensajes.
+## Endpoints usados
+
+| Endpoint | Uso en la interfaz |
+| --- | --- |
+| `/pokemon/{id or name}` | Ficha principal, sprites, tipos, stats, altura, peso, habilidades y movimientos. |
+| `/pokemon?limit=1025` | Indice para autocompletado del buscador. |
+| `/pokemon-species/{id}` | Habitat, generacion, color, forma, captura y descripcion. |
+| `/pokemon/{id}/encounters` | Localizaciones donde aparece el Pokemon. |
+| `/evolution-chain/{id}` | Linea evolutiva. |
+| `/type/{type}` | Exploracion por tipo y relaciones de efectividad en batalla. |
+
+## Arquitectura
+
+```text
+aprendeapi/
+|-- index.html   # estructura de la experiencia
+|-- styles.css   # interfaz, arena, grillas, consola y responsive
+|-- script.js    # estado, PokeAPI, cache, render y batalla
+`-- README.md
+```
+
+Piezas clave del JavaScript:
+
+- `pokeApi`: concentra endpoint base, `fetch`, cache local y registro de llamadas.
+- `BATTLE_STATE`: evita estados ambiguos en combate: `idle`, `ready`, `running`, `finished`.
+- `renderBattleState()`: sincroniza boton, HP, bloqueo, resumen y estado visual del perdedor.
+- `UI_TEXT`: centraliza textos reutilizados como `Batallar`, `Reiniciar` y mensajes de error.
 
 ## Como abrirlo localmente
 
-Este proyecto es una pagina estatica. Puedes abrirlo con un servidor local:
+Este proyecto es estatico. No necesita build ni dependencias.
 
 ```bash
 python -m http.server 4173
 ```
 
-Luego entra a:
+Luego abre:
 
 [http://localhost:4173](http://localhost:4173)
 
-## Estructura
-
-```text
-aprendeapi/
-|-- index.html
-|-- styles.css
-|-- script.js
-`-- README.md
-```
+Tambien puedes abrir `index.html` directamente, aunque usar servidor local evita restricciones de navegador con algunas pruebas.
 
 ## Objetivo educativo
 
-El proyecto no solo muestra datos. Tambien hace visible el flujo de aprendizaje:
+El objetivo es que una persona vea el ciclo completo de una API real:
 
-- Que endpoint se llama.
-- Cuanto tarda.
-- Cuando una seleccion se resuelve desde cache.
-- Que dato alimenta cada seccion.
-- Como se transforma una respuesta JSON en una interfaz interactiva.
+- que endpoint se llama,
+- cuanto tarda,
+- que respuesta se cachea,
+- que dato alimenta cada componente,
+- como una respuesta JSON se transforma en una interfaz interactiva.
 
-La idea es que una persona pueda entender el consumo de APIs mirando la experiencia, no solo leyendo codigo.
+## Creditos
+
+- Datos: [PokeAPI](https://pokeapi.co/) y [PokeAPI v2 Docs](https://pokeapi.co/docs/v2).
+- Sprites publicos: recursos enlazados desde PokeAPI y el repositorio publico de sprites de Pokemon.
