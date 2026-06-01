@@ -1090,14 +1090,10 @@ h2 {
   background: var(--ink);
 }
 
-.battle-summary {
-  margin-top: 14px;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  color: var(--ink);
-  background: #fbfdff;
-  font-weight: 800;
+.battle-summary.is-finished {
+  color: var(--red);
+  border-color: var(--red);
+  background: #fff5f5;
 }
 
 .versus-panel {

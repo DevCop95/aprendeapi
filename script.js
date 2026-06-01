@@ -765,6 +765,12 @@ function renderBattleState(summary = "") {
 
   renderHealth();
 
+  if (state.battleStatus === BATTLE_STATE.FINISHED) {
+    elements.battleSummary.classList.add("is-finished");
+  } else {
+    elements.battleSummary.classList.remove("is-finished");
+  }
+
   if (summary) {
     elements.battleSummary.textContent = summary;
   }
