@@ -1946,6 +1946,20 @@ h2 {
     gap: 4px;
   }
 
+  .player-spotlight .defeated-label {
+    left: 70%;
+  }
+
+  .rival-spotlight .defeated-label {
+    left: 30%;
+  }
+
+  .battle-summary {
+    font-size: 0.8rem;
+    padding: 10px;
+    text-align: center;
+  }
+
   .console-header {
     display: grid;
     grid-template-columns: 1fr;
@@ -2621,6 +2635,20 @@ h2 {
     padding: 6px 8px;
     font-size: 0.55rem;
     gap: 4px;
+  }
+
+  .player-spotlight .defeated-label {
+    left: 70%;
+  }
+
+  .rival-spotlight .defeated-label {
+    left: 30%;
+  }
+
+  .battle-summary {
+    font-size: 0.8rem;
+    padding: 10px;
+    text-align: center;
   }
 
   .console-header {
