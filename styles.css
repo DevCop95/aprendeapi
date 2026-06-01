@@ -397,56 +397,31 @@ h2 {
 }
 
 .battle-stage {
+  font-family: 'Press Start 2P', monospace;
+  display: flex;
+  flex-direction: column;
   min-height: 520px;
   overflow: hidden;
-  border: 1px solid rgba(21, 32, 51, 0.12);
-  border-radius: 8px;
-  background: #9bd7ff;
+  border: 4px solid var(--ink);
+  border-radius: 4px;
+  background: #b0e0e6;
   box-shadow: var(--shadow);
+  image-rendering: pixelated;
+  position: relative; /* Container for absolute positioned submenus */
 }
 
 .arena-sky {
   position: relative;
-  min-height: 240px;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.16) 0 0) top 34px left 0 / 100% 22px no-repeat,
-    linear-gradient(180deg, #8fd2ff 0%, #d8f2ff 100%);
+  min-height: 180px;
+  background: linear-gradient(180deg, #b0e0e6 0%, #e0f7fa 100%);
+  border-bottom: 2px solid #6cb57f;
 }
 
-.hud-rail {
-  position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: 48px;
-  z-index: 2;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 18px;
-  pointer-events: none;
-}
+
 
 .arena-sky::before,
 .arena-sky::after {
-  content: "";
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  bottom: 0;
-  height: 72px;
-  border-radius: 72px 72px 0 0;
-  background: repeating-linear-gradient(90deg, #e74a4f 0 52px, #f8f8f8 52px 104px);
-  border: 8px solid rgba(21, 32, 51, 0.1);
-  border-bottom: 0;
-}
-
-.arena-sky::after {
-  left: 18%;
-  right: 18%;
-  height: 38px;
-  background: #29415e;
-  border: 0;
-  opacity: 0.82;
+  display: none;
 }
 
 .score-chip {
@@ -489,59 +464,31 @@ h2 {
 
 .arena-field {
   position: relative;
-  min-height: 280px;
-  background:
-    radial-gradient(ellipse at center, rgba(255, 255, 255, 0.72) 0 19%, transparent 20%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0 26px, transparent 26px 52px),
-    linear-gradient(180deg, var(--grass) 0%, var(--grass-dark) 100%);
+  flex: 1;
+  min-height: 220px;
+  background: radial-gradient(ellipse at 50% 0%, #c2e2b5 0%, #a8d08d 70%); /* Perspective light gradient at the horizon */
+  border-bottom: 4px solid var(--ink);
   transition: background 600ms ease, box-shadow 600ms ease;
 }
 
 .center-battle-btn {
-  position: absolute;
-  left: 50%;
-  top: 24%;
-  z-index: 4;
-  min-height: 46px;
-  padding: 0 22px;
-  border: 3px solid rgba(21, 32, 51, 0.9);
-  border-radius: 8px;
-  color: var(--white);
-  background: var(--ink);
-  box-shadow: 5px 5px 0 rgba(21, 32, 51, 0.16);
-  font-weight: 1000;
-  transform: translateX(-50%);
-  transition: transform 160ms ease, background 160ms ease;
-}
-
-.center-battle-btn:hover {
-  background: var(--red);
-  transform: translateX(-50%) translateY(-2px);
+  display: none;
 }
 
 .battle-turn-counter {
-  position: absolute;
-  left: 50%;
-  top: 8%;
-  z-index: 4;
-  max-width: min(76%, 360px);
-  padding: 8px 12px;
-  border: 2px solid rgba(21, 32, 51, 0.9);
-  border-radius: 8px;
-  color: var(--ink);
-  background: rgba(255, 250, 240, 0.94);
-  box-shadow: 4px 4px 0 rgba(21, 32, 51, 0.12);
-  font-size: 0.82rem;
-  font-weight: 1000;
-  text-align: center;
-  transform: translateX(-50%);
+  display: none;
+}
+
+.is-hidden {
+  display: none !important;
 }
 
 .pokemon-spotlight {
   position: absolute;
   bottom: 4px;
   display: grid;
-  place-items: center;
+  align-items: end; /* Sit elements on the bottom line */
+  justify-items: center; /* Center horizontally */
   width: min(48%, 360px);
   aspect-ratio: 1.75 / 1;
   --pokemon-height: 210px;
@@ -550,10 +497,15 @@ h2 {
 
 .player-spotlight {
   left: 2%;
+  bottom: -40px;
+  transform: scale(1.25);
+  transform-origin: bottom center;
 }
 
 .rival-spotlight {
-  right: 1%;
+  right: -2%;
+  bottom: 90px; /* Ajustado para el nuevo scale */
+  transform: scale(0.85); /* Más grande para que sea visible */
   transform-origin: bottom center;
 }
 
@@ -719,32 +671,306 @@ h2 {
 
 .battle-hud {
   display: grid;
-  gap: 5px;
-  width: min(260px, 42%);
-  padding: 10px 12px;
-  border: 2px solid var(--ink);
-  border-radius: 8px;
-  background: rgba(255, 250, 240, 0.92);
-  box-shadow: 5px 5px 0 rgba(21, 32, 51, 0.12);
-  font-size: 0.78rem;
+  gap: 8px;
+  width: min(280px, 46%);
+  padding: 12px 16px;
+  border: 4px solid #5a5a5a;
+  background: #f8f8f8;
+  box-shadow: inset -2px -2px 0px rgba(0,0,0,0.1), 4px 4px 0 rgba(0,0,0,0.2);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: #333;
+}
+
+.player-hud {
+  position: absolute;
+  right: 18px;
+  bottom: 12px;
+  z-index: 5;
+  border-bottom-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.rival-hud {
+  position: absolute;
+  left: 18px;
+  bottom: 12px;
+  z-index: 5;
+  border-bottom-right-radius: 16px;
+  border-top-left-radius: 16px;
+}
+
+.hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 2px solid #ccc;
+  padding-bottom: 4px;
+}
+
+.hud-level {
+  font-size: 0.6rem;
+}
+
+.hp-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #5a5a5a;
+  padding: 4px;
+  border-radius: 4px;
+  border: 2px solid #333;
+}
+
+.ps-label {
+  color: #f2c94c;
   font-weight: 900;
-  text-transform: capitalize;
+  font-size: 0.6rem;
 }
 
 .hp-track {
-  height: 10px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: #d9e0eb;
+  flex: 1;
+  height: 6px;
+  background: #4a4a4a;
+  border: 1px solid #222;
 }
 
 .hp-track span {
   display: block;
   width: 0;
   height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #20a866, #ffd84d);
-  transition: width 220ms ease;
+  background: #20a866;
+  transition: width 220ms ease, background 220ms ease;
+}
+
+.player-hud strong {
+  text-align: right;
+  font-size: 0.65rem;
+  margin-top: 2px;
+}
+
+/* Pokemon Spotlight Retro Shadow */
+/* Player platform base */
+.player-spotlight::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  z-index: 0;
+  width: calc(65% + (var(--shadow-scale) * 15%)); /* Massive wide base */
+  height: 24%; /* Steeper perspective ellipse */
+  border-radius: 50%;
+  background: #7ca863;
+  border: 4px solid #5a8a43;
+  transform: translateX(-50%);
+  pointer-events: none;
+  box-shadow: 0 8px 0 #4c7538; /* 3D thickness */
+}
+
+/* Rival platform base */
+.rival-spotlight::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  z-index: 0;
+  width: calc(45% + (var(--shadow-scale) * 10%)); /* Distant smaller base */
+  height: 16%; /* Flatter perspective ellipse */
+  border-radius: 50%;
+  background: #7ca863;
+  border: 2px solid #5a8a43;
+  transform: translateX(-50%);
+  pointer-events: none;
+  box-shadow: 0 4px 0 #4c7538; /* Distant smaller 3D thickness */
+}
+
+/* Bottom Menu */
+.battle-bottom-menu {
+  font-family: 'Press Start 2P', monospace;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  height: 120px;
+  background: #2a2a2a;
+  position: relative; /* Contain absolute positioned submenus */
+}
+
+.battle-bottom-menu.actions-hidden {
+  grid-template-columns: 1fr;
+}
+
+.battle-dialog-box {
+  padding: 16px;
+  border: 4px solid #b0b0b0;
+  border-radius: 8px;
+  margin: 6px;
+  background: #f8f8f8;
+  color: #333;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.battle-dialog-box p {
+  margin: 0;
+}
+
+.battle-action-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin: 6px;
+}
+
+.battle-action-grid.is-hidden {
+  display: none;
+}
+
+.battle-submenu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(21, 32, 51, 0.65); /* Dark transparent backdrop */
+  backdrop-filter: blur(2px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+}
+
+.battle-submenu.is-hidden {
+  display: none !important;
+}
+
+.submenu-modal {
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  border-radius: 8px;
+  width: min(340px, 90%);
+  max-height: 280px;
+  padding: 16px;
+  gap: 10px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  animation: modal-pop 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modal-pop {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.submenu-title {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+}
+
+.submenu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.submenu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--white);
+  border: 2px solid var(--ink);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.submenu-item:hover {
+  background: #f0f0f0;
+}
+
+.submenu-item.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.submenu-item img {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
+}
+
+.submenu-item span {
+  flex: 1;
+  text-align: left;
+  margin-left: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.submenu-item strong {
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+.btn-cancel {
+  background: #e3363f;
+  color: white;
+  border: 2px solid var(--ink);
+  padding: 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.7rem;
+  margin-top: auto;
+}
+
+.gba-btn {
+  border: 4px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: "Press Start 2P", system-ui, sans-serif;
+  font-size: 0.7rem;
+  color: #333;
+  background: #f8f8f8;
+  text-transform: uppercase;
+  box-shadow: inset -2px -2px 0px rgba(0,0,0,0.15);
+  transition: transform 100ms, filter 100ms;
+  padding: 4px;
+}
+
+.gba-btn:hover {
+  transform: scale(0.98);
+  filter: brightness(0.9);
+}
+
+.gba-btn:active {
+  box-shadow: inset 2px 2px 0px rgba(0,0,0,0.2);
+}
+
+.btn-fight {
+  background: #ff8a8a;
+  border-color: #ff4a4a;
+}
+
+.btn-bag {
+  background: #ffcc80;
+  border-color: #ff9800;
+}
+
+.btn-pokemon {
+  background: #81c784;
+  border-color: #4caf50;
+}
+
+.btn-run {
+  background: #64b5f6;
+  border-color: #2196f3;
 }
 
 .stat-panel {
@@ -1355,6 +1581,17 @@ h2 {
     linear-gradient(135deg, rgba(47, 109, 181, 0.16), transparent 52%);
 }
 
+.matchup-card.is-empty {
+  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  color: var(--muted);
+  padding: 32px 14px;
+}
+
 .matchup-card.rival {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(251, 253, 255, 0.88)),
@@ -1615,6 +1852,23 @@ h2 {
     padding-top: 10px;
   }
 
+  .gba-btn {
+    font-size: 0.55rem;
+    padding: 2px;
+    border-width: 2px;
+  }
+
+  .battle-dialog-box {
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    margin: 4px;
+  }
+
+  .battle-action-grid {
+    margin: 4px;
+    gap: 3px;
+  }
+
   .control-deck,
   .stat-panel,
   .api-console,
@@ -1667,11 +1921,15 @@ h2 {
   }
 
   .player-spotlight {
-    left: -2%;
+    left: -16%;
+    bottom: -70px;
+    transform: scale(1.4);
   }
 
   .rival-spotlight {
-    right: -5%;
+    right: -6%;
+    bottom: 105px;
+    transform: scale(0.62);
   }
 
   .center-battle-btn {
@@ -1682,8 +1940,10 @@ h2 {
   }
 
   .battle-hud {
-    width: min(190px, 48%);
-    padding: 8px;
+    width: min(150px, 44%);
+    padding: 6px 8px;
+    font-size: 0.55rem;
+    gap: 4px;
   }
 
   .console-header {
@@ -2307,11 +2567,14 @@ h2 {
     min-height: 430px;
   }
 
-  .hud-rail {
-    left: 12px;
+  .player-hud {
     right: 12px;
     bottom: 12px;
-    gap: 10px;
+  }
+
+  .rival-hud {
+    left: 12px;
+    bottom: 12px;
   }
 
   .rival-chip {
@@ -2331,15 +2594,19 @@ h2 {
   }
 
   .pokemon-spotlight {
-    width: 58%;
+    width: 50%;
   }
 
   .player-spotlight {
-    left: -2%;
+    left: -18%;
+    bottom: -80px;
+    transform: scale(1.5);
   }
 
   .rival-spotlight {
-    right: -5%;
+    right: -12%;
+    bottom: 120px;
+    transform: scale(0.65);
   }
 
   .center-battle-btn {
@@ -2350,8 +2617,10 @@ h2 {
   }
 
   .battle-hud {
-    width: min(190px, 48%);
-    padding: 8px;
+    width: min(150px, 44%);
+    padding: 6px 8px;
+    font-size: 0.55rem;
+    gap: 4px;
   }
 
   .console-header {
