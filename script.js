@@ -105,6 +105,7 @@ const elements = {
   helpClose: document.querySelector("#helpClose"),
   introDialog: document.querySelector("#introDialog"),
   introClose: document.querySelector("#introClose"),
+  arenaField: document.querySelector(".arena-field"),
 };
 
 const typeColors = {
@@ -249,20 +250,33 @@ function officialArtwork(pokemon) {
   );
 }
 
+function animatedSprite(pokemon, back = false) {
+  const animated = pokemon.sprites.versions?.["generation-v"]?.["black-white"]?.animated;
+  if (back) {
+    if (animated?.back_default) return animated.back_default;
+    if (pokemon.sprites.back_default) return pokemon.sprites.back_default;
+  } else {
+    if (animated?.front_default) return animated.front_default;
+  }
+  return officialArtwork(pokemon);
+}
+
 function heightInMeters(pokemon) {
   return pokemon.height / 10;
 }
 
 function artworkHeight(pokemon) {
   const meters = heightInMeters(pokemon);
-  return Math.round(Math.min(335, Math.max(96, 75 + meters * 120)));
+  return Math.round(Math.min(400, Math.max(120, 100 + meters * 150)));
 }
 
 function applyArtworkScale(image, tag, pokemon) {
   const meters = heightInMeters(pokemon);
   const height = `${artworkHeight(pokemon)}px`;
   image.style.setProperty("--pokemon-height", height);
-  image.parentElement?.style.setProperty("--shadow-scale", Math.min(1.35, Math.max(0.72, meters / 1.4)).toFixed(2));
+  // Escala de sombra mas precisa: base 0.8 + factor de altura
+  const shadowScale = Math.min(1.6, Math.max(0.6, 0.7 + (meters / 2.5)));
+  image.parentElement?.style.setProperty("--shadow-scale", shadowScale.toFixed(2));
   tag.textContent = `${meters.toFixed(1)} m`;
 }
 
@@ -380,10 +394,8 @@ function renderPokemon(pokemon) {
     .join("");
 
   elements.emptyState.classList.add("is-hidden");
-  elements.artwork.classList.remove("is-visible");
-  elements.artwork.src = officialArtwork(pokemon);
-  elements.artwork.alt = `Ilustracion de ${name}`;
   elements.artwork.onload = () => elements.artwork.classList.add("is-visible");
+  elements.artwork.src = animatedSprite(pokemon, true); // Sprite animado de espalda para el jugador
   applyArtworkScale(elements.artwork, elements.playerHeightTag, pokemon);
 
   elements.playerHudName.textContent = name;
@@ -417,9 +429,8 @@ function renderRival(pokemon) {
   elements.rivalId.textContent = `#${String(pokemon.id).padStart(3, "0")}`;
   elements.rivalHudName.textContent = name;
   elements.rivalArtwork.classList.remove("is-visible");
-  elements.rivalArtwork.src = officialArtwork(pokemon);
-  elements.rivalArtwork.alt = `Ilustracion de ${name}`;
   elements.rivalArtwork.onload = () => elements.rivalArtwork.classList.add("is-visible");
+  elements.rivalArtwork.src = animatedSprite(pokemon, false); // Sprite animado de frente para el rival
   applyArtworkScale(elements.rivalArtwork, elements.rivalHeightTag, pokemon);
   elements.versusRivalName.textContent = titleName(name);
   renderFighterRoster();
@@ -597,6 +608,12 @@ function updateTurnCounter(text) {
   elements.battleTurnCounter.textContent = text;
 }
 
+function setArenaTheme(type) {
+  const currentThemes = Array.from(elements.arenaField.classList).filter((c) => c.startsWith("theme-"));
+  if (currentThemes.length) elements.arenaField.classList.remove(...currentThemes);
+  if (type) elements.arenaField.classList.add(`theme-${type}`);
+}
+
 function renderHealth() {
   if (!state.battle) return;
 
@@ -637,6 +654,12 @@ async function buildAttack(attacker, defender, round) {
   const defenderTypes = defender.types.map(({ type }) => type.name);
   const relations = await getTypeRelations(attackType);
   const multiplier = relationMultiplier(relations, defenderTypes);
+
+  // Seleccionar movimiento real
+  const randomMove = attacker.moves[Math.floor(Math.random() * attacker.moves.length)].move;
+  const moveData = await pokeApi.get(randomMove.url, "move");
+  const moveName = moveData.names.find((n) => n.language.name === "es")?.name || titleName(moveData.name);
+
   const attack = getStat(attacker, "attack") + getStat(attacker, "special-attack");
   const defense = getStat(defender, "defense") + getStat(defender, "special-defense");
   const speedBoost = getStat(attacker, "speed") > getStat(defender, "speed") ? 1.04 : 1;
@@ -647,6 +670,7 @@ async function buildAttack(attacker, defender, round) {
   return {
     attacker: battleName(attacker),
     defender: battleName(defender),
+    moveName,
     attackType,
     damage,
     multiplier,
@@ -726,7 +750,7 @@ async function runBattle() {
         const defenderHp = attacker === player ? state.battle.rivalHp : state.battle.playerHp;
         const defenderMax = attacker === player ? state.battle.rivalMax : state.battle.playerMax;
         turnEntry.attacks.push(
-          `${attack.attacker} golpea a ${attack.defender}: ${attack.damage} danio (${attack.text}). HP ${defenderHp}/${defenderMax}.`,
+          `${attack.attacker} usa ${attack.moveName}: ${attack.damage} daño (${attack.text}). HP ${defenderHp}/${defenderMax}.`,
         );
         lastTurnAttacks = turnEntry.attacks.length;
         renderBattleLog(entries);
@@ -965,6 +989,7 @@ function bindEvents() {
 
     elements.input.value = playerId;
     elements.rivalInput.value = rivalId;
+    setArenaTheme(null); // Reset al verde original
     Promise.all([searchPokemon(String(playerId)), prepareRival(String(rivalId))]).then(triggerVsAnimation);
   });
 
@@ -1013,6 +1038,7 @@ async function init() {
   renderTypeButtons();
   renderMatchupPanel();
   bindEvents();
+  if (window.lucide) window.lucide.createIcons();
   elements.introDialog.showModal();
   await loadPokemonIndex();
   await loadFighterRoster();
