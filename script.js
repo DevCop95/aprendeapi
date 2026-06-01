@@ -52,7 +52,8 @@ const state = {
   typePage: 0,
 };
 
-const elements = {
+// Proxied elements object to prevent null pointer exceptions if DOM elements are missing
+const elements = new Proxy({
   form: document.querySelector("#searchForm"),
   input: document.querySelector("#pokemonInput"),
   pokemonSuggestions: document.querySelector("#pokemonSuggestions"),
@@ -129,7 +130,60 @@ const elements = {
   introClose: document.querySelector("#introClose"),
   arenaField: document.querySelector(".arena-field"),
   toastContainer: document.querySelector("#toastContainer"),
-};
+}, {
+  get(target, prop) {
+    const val = target[prop];
+    if (val === null) {
+      console.warn(`Element "${prop}" not found in DOM. Check index.html for ID/class.`);
+      const dummy = {
+        addEventListener: () => {},
+        classList: { add: () => {}, remove: () => {}, toggle: () => {}, contains: () => false },
+        setAttribute: () => {},
+        getAttribute: () => null,
+        appendChild: () => {},
+        remove: () => {},
+        showModal: () => {},
+        close: () => {},
+        style: { setProperty: () => {}, width: "", display: "" },
+        textContent: "",
+        innerHTML: "",
+        value: "",
+        dataset: {},
+        contains: () => false,
+        querySelector: () => null,
+        querySelectorAll: () => [],
+        focus: () => {},
+        click: () => {},
+        disabled: false,
+        src: "",
+        onload: null,
+      };
+      dummy.parentElement = dummy; // Recursive dummy for parentElement
+      return dummy;
+    }
+    if (typeof val === "object" && val !== null && !val.nodeType) {
+      return new Proxy(val, {
+        get: (t, p) => {
+          const v = t[p];
+          if (v === null) {
+            console.warn(`Nested element "${String(p)}" not found in DOM.`);
+            const nestedDummy = {
+              addEventListener: () => {},
+              classList: { add: () => {}, remove: () => {}, toggle: () => {}, contains: () => false },
+              style: { setProperty: () => {} },
+              textContent: "",
+              innerHTML: "",
+            };
+            nestedDummy.parentElement = nestedDummy;
+            return nestedDummy;
+          }
+          return v;
+        }
+      });
+    }
+    return val;
+  }
+});
 
 const typeColors = {
   normal: "#8d98a7",

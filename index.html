@@ -10,6 +10,7 @@
     />
     <link rel="preconnect" href="https://pokeapi.co" />
     <link rel="preconnect" href="https://raw.githubusercontent.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
     <script src="https://unpkg.com/lucide@latest"></script>
   </head>
@@ -64,23 +65,34 @@
                 <span id="rivalName">Rival pendiente</span>
                 <strong id="rivalId">#---</strong>
               </div>
-              <div class="hud-rail">
-                <div class="battle-hud player-hud">
-                  <span id="playerHudName">Tu Pokemon</span>
-                  <div class="hp-track"><span id="playerHpBar"></span></div>
-                  <strong id="playerHpText">-- / --</strong>
-                </div>
-                <div class="battle-hud rival-hud">
+              <div class="battle-hud rival-hud">
+                <div class="hud-header">
                   <span id="rivalHudName">Rival</span>
-                  <div class="hp-track"><span id="rivalHpBar"></span></div>
-                  <strong id="rivalHpText">-- / --</strong>
+                  <span class="hud-level">Nv50</span>
                 </div>
+                <div class="hp-row">
+                  <span class="ps-label">PS</span>
+                  <div class="hp-track"><span id="rivalHpBar"></span></div>
+                </div>
+                <strong id="rivalHpText">-- / --</strong>
               </div>
             </div>
             <div class="arena-field">
               <div class="vs-burst" id="vsBurst" aria-hidden="true">VS</div>
-              <div class="battle-turn-counter" id="battleTurnCounter">Turno 0</div>
-              <button type="button" class="center-battle-btn" id="stageBattleBtn">Batallar</button>
+              <div class="battle-turn-counter is-hidden" id="battleTurnCounter">Turno 0</div>
+
+              <div class="battle-hud player-hud">
+                <div class="hud-header">
+                  <span id="playerHudName">Tu Pokemon</span>
+                  <span class="hud-level">Nv50</span>
+                </div>
+                <div class="hp-row">
+                  <span class="ps-label">PS</span>
+                  <div class="hp-track"><span id="playerHpBar"></span></div>
+                </div>
+                <strong id="playerHpText">-- / --</strong>
+              </div>
+
               <div class="pokemon-spotlight player-spotlight">
                 <img id="pokemonArtwork" alt="" src="" />
                 <span class="defeated-label">Derrotado</span>
@@ -96,6 +108,33 @@
                 <span class="defeated-label">Derrotado</span>
                 <span class="hit-effect" aria-hidden="true"></span>
                 <span class="height-tag" id="rivalHeightTag">-- m</span>
+              </div>
+            </div>
+            <div class="battle-bottom-menu">
+              <div class="battle-dialog-box">
+                <p id="battleDialogText">¿Qué hará <span id="dialogPokemonName">Pokémon</span>?</p>
+              </div>
+              <div class="battle-action-grid" id="battleActionGrid">
+                <button type="button" class="gba-btn btn-fight" id="stageBattleBtn">LUCHAR</button>
+                <button type="button" class="gba-btn btn-bag" id="stageBagBtn">MOCHILA</button>
+                <button type="button" class="gba-btn btn-pokemon" id="stagePokemonBtn">POKÉMON</button>
+                <button type="button" class="gba-btn btn-run" id="stageRunBtn">HUIR</button>
+              </div>
+            </div>
+
+            <!-- Submenus positioned absolutely over the whole battle stage as a popup overlay -->
+            <div class="battle-submenu is-hidden" id="bagMenu">
+              <div class="submenu-modal">
+                <div class="submenu-title">MOCHILA</div>
+                <div class="submenu-list" id="bagList"></div>
+                <button type="button" class="gba-btn btn-cancel" id="bagCancelBtn">VOLVER</button>
+              </div>
+            </div>
+            <div class="battle-submenu is-hidden" id="pokemonSwitchMenu">
+              <div class="submenu-modal">
+                <div class="submenu-title">POKÉMON</div>
+                <div class="submenu-list" id="pokemonSwitchList"></div>
+                <button type="button" class="gba-btn btn-cancel" id="pokemonCancelBtn">VOLVER</button>
               </div>
             </div>
           </section>
