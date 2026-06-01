@@ -557,17 +557,10 @@ h2 {
   transform-origin: bottom center;
 }
 
-.player-spotlight::after {
-  left: 42%;
-}
-
-.rival-spotlight::after {
-  left: 58%;
-}
-
 .pokemon-spotlight::after {
   content: "";
   position: absolute;
+  left: 50%;
   bottom: 2%;
   z-index: 0;
   width: calc(35% + (var(--shadow-scale) * 12%));
@@ -581,18 +574,24 @@ h2 {
 .pokemon-spotlight img {
   position: relative;
   grid-area: 1 / 1;
+  align-self: end;
   z-index: 1;
   width: auto;
   height: var(--pokemon-height);
   max-width: 95%;
   max-height: 400px;
   object-fit: contain;
+  object-position: bottom center;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   opacity: 0;
   transform: translateY(12px);
   transform-origin: bottom center;
   transition: opacity 220ms ease, transform 220ms ease, filter 220ms ease;
+}
+
+.pokemon-spotlight.is-flying img {
+  bottom: 24px;
 }
 
 .pokemon-spotlight.is-defeated img {
@@ -2407,5 +2406,140 @@ h2 {
   .call-row .result,
   .latency {
     display: none;
+  }
+}
+
+
+/* Toast System */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: grid;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast {
+  min-width: 280px;
+  max-width: 400px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  color: var(--white);
+  background: var(--ink);
+  box-shadow: 0 12px 32px rgba(21, 32, 51, 0.24);
+  font-weight: 800;
+  font-size: 0.9rem;
+  pointer-events: auto;
+  animation: toast-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toast.error {
+  background: var(--red);
+}
+
+.toast.success {
+  background: var(--grass-dark);
+}
+
+.toast.out {
+  animation: toast-out 0.2s ease forwards;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toast-out {
+  to { opacity: 0; transform: translateX(40px); }
+}
+
+/* Skeleton Loading */
+.is-loading-skeleton {
+  position: relative;
+  overflow: hidden !important;
+  color: transparent !important;
+  background: #f0f3f8 !important;
+  border-color: #e4eaf4 !important;
+  pointer-events: none;
+}
+
+.is-loading-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  animation: skeleton-sweep 1.5s infinite;
+}
+
+.is-loading-skeleton * {
+  visibility: hidden !important;
+}
+
+@keyframes skeleton-sweep {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+/* History Icon in Suggestions */
+.suggestions button .history-icon {
+  margin-right: 8px;
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* Load More Button */
+.load-more-container {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.load-more-btn {
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 8px;
+  color: var(--white);
+  background: var(--ink);
+  font-weight: 800;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.load-more-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+.load-more-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.load-more-btn.is-hidden {
+  display: none;
+}
+
+@media (max-width: 680px) {
+  .toast-container {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+  .toast {
+    min-width: 0;
   }
 }

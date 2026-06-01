@@ -40,6 +40,9 @@ const state = {
   pokemonIndex: [],
   resourceCache: new Map(),
   fighterRoster: [],
+  searchHistory: JSON.parse(localStorage.getItem("pokemonHistory") || "[]"),
+  typeResults: [],
+  typePage: 0,
 };
 
 const elements = {
@@ -96,6 +99,7 @@ const elements = {
   turnLog: document.querySelector("#turnLog"),
   typeFilter: document.querySelector("#typeFilter"),
   pokemonGrid: document.querySelector("#pokemonGrid"),
+  loadMoreBtn: document.querySelector("#loadMoreBtn"),
   callLog: document.querySelector("#callLog"),
   callCount: document.querySelector("#callCount"),
   avgLatency: document.querySelector("#avgLatency"),
@@ -106,6 +110,7 @@ const elements = {
   introDialog: document.querySelector("#introDialog"),
   introClose: document.querySelector("#introClose"),
   arenaField: document.querySelector(".arena-field"),
+  toastContainer: document.querySelector("#toastContainer"),
 };
 
 const typeColors = {
@@ -232,9 +237,46 @@ function renderCalls() {
     .join("");
 }
 
+function showToast(message, type = "info") {
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `
+    <i data-lucide="${type === "error" ? "alert-circle" : "check-circle"}"></i>
+    <span>${message}</span>
+  `;
+  elements.toastContainer.appendChild(toast);
+  if (window.lucide) window.lucide.createIcons();
+
+  setTimeout(() => {
+    toast.classList.add("out");
+    toast.addEventListener("animationend", () => toast.remove());
+  }, 4000);
+}
+
+function updateSearchHistory(name) {
+  const query = normalizeName(name);
+  state.searchHistory = [query, ...state.searchHistory.filter((h) => h !== query)].slice(0, 5);
+  localStorage.setItem("pokemonHistory", JSON.stringify(state.searchHistory));
+}
+
 function setLoading(isLoading) {
   elements.statusPill.textContent = isLoading ? "cargando" : "online";
   elements.statusPill.classList.toggle("is-online", !isLoading && Boolean(state.selectedPokemon));
+
+  // Skeleton support
+  const skeletonTargets = [
+    elements.profileGrid,
+    elements.statsList,
+    elements.speciesSummary,
+    elements.locationList,
+    elements.evolutionLine,
+    elements.moveList,
+    elements.matchupGrid
+  ];
+
+  skeletonTargets.forEach(el => {
+    if (el) el.classList.toggle("is-loading-skeleton", isLoading);
+  });
 }
 
 function formatStatName(name) {
@@ -278,6 +320,10 @@ function applyArtworkScale(image, tag, pokemon) {
   const shadowScale = Math.min(1.6, Math.max(0.6, 0.7 + (meters / 2.5)));
   image.parentElement?.style.setProperty("--shadow-scale", shadowScale.toFixed(2));
   tag.textContent = `${meters.toFixed(1)} m`;
+
+  const isFlying = pokemon.types.some(({ type }) => type.name === "flying") ||
+                   pokemon.abilities?.some(({ ability }) => ability.name === "levitate");
+  image.parentElement?.classList.toggle("is-flying", isFlying);
 }
 
 function getStat(pokemon, statName) {
@@ -414,10 +460,13 @@ async function searchPokemon(value) {
   try {
     const pokemon = await pokeApi.get(`/pokemon/${query}`, "pokemon");
     renderPokemon(pokemon);
+    updateSearchHistory(pokemon.name);
     setLoading(false);
   } catch (error) {
+    setLoading(false);
     elements.statusPill.textContent = "no encontrado";
     elements.statusPill.classList.remove("is-online");
+    showToast(`Pokémon "${value}" no encontrado`, "error");
   }
 }
 
@@ -444,9 +493,14 @@ async function prepareRival(value) {
   if (!query) return;
 
   elements.battleSummary.textContent = UI_TEXT.preparingRival;
-  const pokemon = await pokeApi.get(`/pokemon/${query}`, "rival");
-  renderRival(pokemon);
-  elements.battleSummary.textContent = `${battleName(pokemon)} esta listo. Pulsa Batallar para simular turnos con stats reales.`;
+  try {
+    const pokemon = await pokeApi.get(`/pokemon/${query}`, "rival");
+    renderRival(pokemon);
+    elements.battleSummary.textContent = `${battleName(pokemon)} esta listo. Pulsa Batallar para simular turnos con stats reales.`;
+  } catch (error) {
+    showToast(`Rival "${value}" no encontrado`, "error");
+    elements.battleSummary.textContent = "Error al cargar rival.";
+  }
 }
 
 function cleanFlavorText(text) {
@@ -798,13 +852,22 @@ async function runBattle() {
 
 async function loadType(typeName) {
   state.activeType = typeName;
+  state.typePage = 0;
   renderTypeButtons();
   elements.pokemonGrid.innerHTML = "";
 
   const data = await pokeApi.get(`/type/${typeName}`, "type");
-  const sample = data.pokemon.slice(0, 12).map((item) => item.pokemon);
+  state.typeResults = data.pokemon.map((item) => item.pokemon);
+  
+  renderTypePage();
+}
 
-  elements.pokemonGrid.innerHTML = sample
+function renderTypePage() {
+  const start = state.typePage * 12;
+  const end = start + 12;
+  const page = state.typeResults.slice(start, end);
+
+  const html = page
     .map((pokemon) => {
       const id = pokemon.url.split("/").filter(Boolean).pop();
       const sprite = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
@@ -817,6 +880,11 @@ async function loadType(typeName) {
       `;
     })
     .join("");
+
+  elements.pokemonGrid.innerHTML += html;
+  
+  const hasMore = end < state.typeResults.length;
+  elements.loadMoreBtn.classList.toggle("is-hidden", !hasMore);
 }
 
 async function loadPokemonIndex() {
@@ -840,7 +908,17 @@ function suggestionScore(pokemon, query) {
 
 function findSuggestions(value) {
   const query = normalizeName(value);
-  if (!query || !state.pokemonIndex.length) return [];
+  
+  // If empty, show history
+  if (!query) {
+    return state.searchHistory.map(name => ({
+      name,
+      label: name.replaceAll("-", " "),
+      isHistory: true
+    }));
+  }
+
+  if (!state.pokemonIndex.length) return [];
 
   return state.pokemonIndex
     .map((pokemon) => ({ ...pokemon, score: suggestionScore(pokemon, query) }))
@@ -857,12 +935,17 @@ function renderSuggestions(input, container) {
     .map(
       (pokemon) => `
         <button type="button" role="option" data-pokemon="${pokemon.name}">
-          <span>${pokemon.label}</span>
-          <small>#${String(pokemon.id).padStart(3, "0")}</small>
+          <div style="display: flex; align-items: center;">
+            ${pokemon.isHistory ? '<i data-lucide="clock" class="history-icon"></i>' : ""}
+            <span>${pokemon.label}</span>
+          </div>
+          ${pokemon.id ? `<small>#${String(pokemon.id).padStart(3, "0")}</small>` : ""}
         </button>
       `,
     )
     .join("");
+  
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function closeSuggestions(input, container) {
@@ -1031,6 +1114,11 @@ function bindEvents() {
     if (!target) return;
     elements.input.value = target.dataset.pokemon;
     searchPokemon(target.dataset.pokemon);
+  });
+
+  elements.loadMoreBtn.addEventListener("click", () => {
+    state.typePage += 1;
+    renderTypePage();
   });
 }
 
