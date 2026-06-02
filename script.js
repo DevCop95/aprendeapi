@@ -215,16 +215,16 @@ const pokeApi = {
     return path.startsWith("http") ? path : `${API_BASE}${path}`;
   },
 
-  async get(path, label = "GET") {
+  get(path, label = "GET") {
     const url = this.endpoint(path);
     if (state.resourceCache.has(url)) {
       this.recordCacheHit(url, label);
       return state.resourceCache.get(url);
     }
 
-    const data = await this.fetchTracked(path, label);
-    state.resourceCache.set(url, data);
-    return data;
+    const promise = this.fetchTracked(path, label);
+    state.resourceCache.set(url, promise);
+    return promise;
   },
 
   async fetchTracked(path, label = "GET") {
@@ -254,13 +254,14 @@ const pokeApi = {
         throw new Error(`PokeAPI respondio ${response.status}`);
       }
 
-      return response.json();
+      return await response.json();
     } catch (error) {
       entry.status = "error";
       entry.ok = false;
       entry.latency = Math.round(performance.now() - startedAt);
       entry.error = error.message;
       renderCalls();
+      state.resourceCache.delete(url); // Clean cache on error so it can retry
       throw error;
     }
   },
@@ -1267,15 +1268,58 @@ function chooseSuggestion(input, container, value, callback) {
 }
 
 function bindSuggestions(input, container, callback) {
-  input.addEventListener("input", () => renderSuggestions(input, container));
-  input.addEventListener("focus", () => renderSuggestions(input, container));
+  let activeIndex = -1;
+
+  const updateActiveHighlight = (buttons) => {
+    buttons.forEach((btn, idx) => {
+      if (idx === activeIndex) {
+        btn.classList.add("is-active");
+        btn.setAttribute("aria-selected", "true");
+        btn.scrollIntoView({ block: "nearest" });
+      } else {
+        btn.classList.remove("is-active");
+        btn.removeAttribute("aria-selected");
+      }
+    });
+  };
+
+  input.addEventListener("input", () => {
+    activeIndex = -1;
+    renderSuggestions(input, container);
+  });
+
+  input.addEventListener("focus", () => {
+    activeIndex = -1;
+    renderSuggestions(input, container);
+  });
 
   input.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter") return;
-    const first = container.querySelector("[data-pokemon]");
-    if (!first || normalizeName(input.value) === first.dataset.pokemon) return;
-    event.preventDefault();
-    chooseSuggestion(input, container, first.dataset.pokemon, callback);
+    const buttons = container.querySelectorAll("button[data-pokemon]");
+    if (!buttons.length) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      activeIndex = (activeIndex + 1) % buttons.length;
+      updateActiveHighlight(buttons);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      activeIndex = (activeIndex - 1 + buttons.length) % buttons.length;
+      updateActiveHighlight(buttons);
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      closeSuggestions(input, container);
+    } else if (event.key === "Enter") {
+      if (activeIndex >= 0 && activeIndex < buttons.length) {
+        event.preventDefault();
+        chooseSuggestion(input, container, buttons[activeIndex].dataset.pokemon, callback);
+      } else {
+        const first = buttons[0];
+        if (first && normalizeName(input.value) !== first.dataset.pokemon) {
+          event.preventDefault();
+          chooseSuggestion(input, container, first.dataset.pokemon, callback);
+        }
+      }
+    }
   });
 
   container.addEventListener("mousedown", (event) => {

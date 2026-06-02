@@ -299,8 +299,10 @@ h2 {
   text-transform: capitalize;
 }
 
-.suggestions button:hover {
+.suggestions button:hover,
+.suggestions button.is-active {
   background: #edf1f7;
+  outline: none;
 }
 
 .suggestions small {
@@ -342,9 +344,12 @@ h2 {
 }
 
 .search-bar .suggestions button:hover,
-.rival-form .suggestions button:hover {
+.search-bar .suggestions button.is-active,
+.rival-form .suggestions button:hover,
+.rival-form .suggestions button.is-active {
   transform: none;
   background: #edf1f7;
+  outline: none;
 }
 
 .icon-button {
@@ -684,20 +689,20 @@ h2 {
 
 .player-hud {
   position: absolute;
-  right: 18px;
-  bottom: 12px;
-  z-index: 5;
-  border-bottom-left-radius: 16px;
-  border-top-right-radius: 16px;
-}
-
-.rival-hud {
-  position: absolute;
   left: 18px;
   bottom: 12px;
   z-index: 5;
   border-bottom-right-radius: 16px;
   border-top-left-radius: 16px;
+}
+
+.rival-hud {
+  position: absolute;
+  right: 18px;
+  bottom: 12px;
+  z-index: 5;
+  border-bottom-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 
 .hud-header {
@@ -2578,12 +2583,12 @@ h2 {
   }
 
   .player-hud {
-    right: 12px;
+    left: 12px;
     bottom: 12px;
   }
 
   .rival-hud {
-    left: 12px;
+    right: 12px;
     bottom: 12px;
   }
 
