@@ -58,7 +58,7 @@ const elements = new Proxy({
   input: document.querySelector("#pokemonInput"),
   pokemonSuggestions: document.querySelector("#pokemonSuggestions"),
   randomBtn: document.querySelector("#randomBtn"),
-  quickActions: document.querySelector(".quick-actions"),
+  arenaRandomBtn: document.querySelector("#arenaRandomBtn"),
   selectedName: document.querySelector("#selectedName"),
   selectedId: document.querySelector("#selectedId"),
   rivalName: document.querySelector("#rivalName"),
@@ -1413,7 +1413,7 @@ function bindEvents() {
     searchPokemon(elements.input.value);
   });
 
-  elements.randomBtn.addEventListener("click", () => {
+  const handleRandomClick = () => {
     const playerId = Math.floor(Math.random() * MAX_POKEMON_ID) + 1;
     let rivalId = Math.floor(Math.random() * MAX_POKEMON_ID) + 1;
     if (rivalId === playerId) {
@@ -1424,14 +1424,11 @@ function bindEvents() {
     elements.rivalInput.value = rivalId;
     setArenaTheme(null); // Reset al verde original
     Promise.all([searchPokemon(String(playerId)), prepareRival(String(rivalId))]).then(triggerVsAnimation);
-  });
+  };
 
-  elements.quickActions.addEventListener("click", (event) => {
-    const target = event.target.closest("[data-pokemon]");
-    if (!target) return;
-    elements.input.value = target.dataset.pokemon;
-    searchPokemon(target.dataset.pokemon);
-  });
+  elements.randomBtn.addEventListener("click", handleRandomClick);
+  elements.arenaRandomBtn.addEventListener("click", handleRandomClick);
+
 
 
   elements.rivalForm.addEventListener("submit", (event) => {
